@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import ReferralSystem from './ReferralSystem';
 
 interface DashboardStats {
   totalCoins: number;
@@ -132,7 +133,7 @@ const StudentDashboard = () => {
         </div>
         <div className="flex items-center gap-2 bg-yellow-100 px-4 py-2 rounded-full">
           <Coins className="w-5 h-5 text-yellow-600" />
-          <span className="font-bold text-yellow-800">{totalCoins} Coins</span>
+          <span className="font-bold text-yellow-800">{stats.totalCoins} Coins</span>
         </div>
       </div>
 

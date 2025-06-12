@@ -170,15 +170,19 @@ const Family = () => {
     }
 
     try {
+      // Generate a UUID for the new child profile
+      const childId = crypto.randomUUID();
+      
       // In a real app, you'd create the child account properly
       // For now, we'll just add them to the profiles table
       const { error } = await supabase
         .from('profiles')
         .insert({
+          id: childId,
           first_name: childFirstName,
           last_name: childLastName,
           email: childEmail,
-          role: 'student',
+          role: 'student' as const,
           parent_id: user?.id,
           age: childAge ? parseInt(childAge) : null
         });
