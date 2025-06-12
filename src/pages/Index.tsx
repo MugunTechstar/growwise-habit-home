@@ -1,22 +1,9 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Trophy, 
-  Calendar, 
-  Coins, 
-  Users, 
-  Shield, 
-  Gamepad2,
-  Star,
-  Heart,
-  BookOpen
-} from "lucide-react";
+import { Trophy, Calendar, Coins, Users, Shield, Gamepad2, Star, Heart, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
-
 const Index = () => {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500">
+  return <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500">
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-12">
         <div className="text-center text-white mb-12">
@@ -32,7 +19,7 @@ const Index = () => {
                 Get Started
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-purple-600">
+            <Button size="lg" variant="outline" className="border-white hover:bg-white text-purple-600">
               Learn More
             </Button>
           </div>
@@ -155,8 +142,6 @@ const Index = () => {
           </Link>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
