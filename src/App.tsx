@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,6 +10,11 @@ import AppLayout from "@/components/layout/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import Activities from "./pages/Activities";
+import Calendar from "./pages/Calendar";
+import Rewards from "./pages/Rewards";
+import Games from "./pages/Games";
+import Family from "./pages/Family";
 
 const queryClient = new QueryClient();
 
@@ -48,14 +52,19 @@ const AppRoutes = () => {
       <Route path="/auth" element={user ? <Navigate to="/dashboard" replace /> : <AuthPage />} />
       <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Index />} />
       <Route
-        path="/dashboard"
+        path="/*"
         element={
           <ProtectedRoute>
             <AppLayout />
           </ProtectedRoute>
         }
       >
-        <Route index element={<Dashboard />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="activities" element={<Activities />} />
+        <Route path="calendar" element={<Calendar />} />
+        <Route path="rewards" element={<Rewards />} />
+        <Route path="games" element={<Games />} />
+        <Route path="family" element={<Family />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -12,7 +11,9 @@ import {
   Star,
   Plus,
   CheckCircle,
-  Clock
+  Clock,
+  Activity,
+  Gamepad2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,6 +23,10 @@ interface DashboardStats {
   pendingActivities: number;
   completedToday: number;
   currentStreak: number;
+  totalActivities: number;
+  approvedActivities: number;
+  calendarEvents: number;
+  gamesPlayed: number;
 }
 
 const StudentDashboard = () => {
@@ -30,9 +35,14 @@ const StudentDashboard = () => {
     totalCoins: 0,
     pendingActivities: 0,
     completedToday: 0,
-    currentStreak: 0
+    currentStreak: 0,
+    totalActivities: 0,
+    approvedActivities: 0,
+    calendarEvents: 0,
+    gamesPlayed: 0
   });
   const [loading, setLoading] = useState(true);
+  const [recentActivities, setRecentActivities] = useState([]);
 
   useEffect(() => {
     if (user) {
@@ -71,8 +81,22 @@ const StudentDashboard = () => {
         totalCoins,
         pendingActivities: pendingData?.length || 0,
         completedToday: todayData?.length || 0,
-        currentStreak: 5 // TODO: Calculate actual streak
+        currentStreak: 5, // TODO: Calculate actual streak
+        totalActivities: 100, // TODO: Fetch actual total activities
+        approvedActivities: 50, // TODO: Fetch actual approved activities
+        calendarEvents: 20, // TODO: Fetch actual calendar events
+        gamesPlayed: 15 // TODO: Fetch actual games played
       });
+
+      // Fetch recent activities
+      const { data: recentActivityData } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('student_id', user?.id)
+        .order('submitted_at', { ascending: false })
+        .limit(10);
+
+      setRecentActivities(recentActivityData || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -100,162 +124,134 @@ const StudentDashboard = () => {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-6 text-white">
-        <h1 className="text-2xl font-bold mb-2">Welcome back! 🌟</h1>
-        <p className="text-purple-100">Ready to grow and earn coins today?</p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Welcome back! 🌟</h1>
+          <p className="text-gray-600">Keep growing and earning coins!</p>
+        </div>
+        <div className="flex items-center gap-2 bg-yellow-100 px-4 py-2 rounded-full">
+          <Coins className="w-5 h-5 text-yellow-600" />
+          <span className="font-bold text-yellow-800">{totalCoins} Coins</span>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-yellow-400 to-yellow-500 text-white">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Coins</CardTitle>
-            <Coins className="h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCoins}</div>
-            <p className="text-xs text-yellow-100">
-              {coinsToNextMilestone} to next milestone
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
-            <Clock className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingActivities}</div>
-            <p className="text-xs text-muted-foreground">
-              Activities awaiting approval
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed Today</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.completedToday}</div>
-            <p className="text-xs text-muted-foreground">
-              Great progress today!
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Current Streak</CardTitle>
-            <Star className="h-4 w-4 text-purple-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.currentStreak}</div>
-            <p className="text-xs text-muted-foreground">
-              Days in a row
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Milestone Progress */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-yellow-500" />
-            Milestone Progress
-          </CardTitle>
-          <CardDescription>
-            Keep going! You're {coinsToNextMilestone} coins away from your next reward milestone.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Progress to next milestone</span>
-              <span>{stats.totalCoins % 5000}/5000 coins</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="flex-1">
+                <p className="text-blue-100">Total Activities</p>
+                <p className="text-3xl font-bold">{stats.totalActivities}</p>
+              </div>
+              <Activity className="h-8 w-8 text-blue-200" />
             </div>
-            <Progress value={milestoneProgress} className="h-3" />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Plus className="h-5 w-5 text-green-500" />
-              Log Activity
-            </CardTitle>
-            <CardDescription>
-              Submit a completed task or activity
-            </CardDescription>
-          </CardHeader>
+          </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Calendar className="h-5 w-5 text-blue-500" />
-              Plan My Day
-            </CardTitle>
-            <CardDescription>
-              Set up your daily schedule
-            </CardDescription>
-          </CardHeader>
+        <Card className="bg-gradient-to-r from-green-500 to-teal-600 text-white">
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="flex-1">
+                <p className="text-green-100">Approved</p>
+                <p className="text-3xl font-bold">{stats.approvedActivities}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-200" />
+            </div>
+          </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Target className="h-5 w-5 text-purple-500" />
-              Play Games
-            </CardTitle>
-            <CardDescription>
-              Earn coins through educational games
-            </CardDescription>
-          </CardHeader>
+        <Card className="bg-gradient-to-r from-orange-500 to-red-600 text-white">
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="flex-1">
+                <p className="text-orange-100">Calendar Events</p>
+                <p className="text-3xl font-bold">{stats.calendarEvents}</p>
+              </div>
+              <Calendar className="h-8 w-8 text-orange-200" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-purple-500 to-pink-600 text-white">
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="flex-1">
+                <p className="text-purple-100">Games Played</p>
+                <p className="text-3xl font-bold">{stats.gamesPlayed}</p>
+              </div>
+              <Gamepad2 className="h-8 w-8 text-purple-200" />
+            </div>
+          </CardContent>
         </Card>
       </div>
 
-      {/* Recent Activities */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Activities</CardTitle>
-          <CardDescription>Your latest submitted activities</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[
-              { task: "Brushed teeth", coins: 5, status: "approved", time: "2 hours ago" },
-              { task: "Completed homework", coins: 20, status: "pending", time: "4 hours ago" },
-              { task: "Helped with dishes", coins: 15, status: "approved", time: "Yesterday" }
-            ].map((activity, i) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full ${
-                    activity.status === 'approved' ? 'bg-green-500' : 'bg-yellow-500'
-                  }`} />
+      {/* Recent Activities and Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Activities */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="w-5 h-5" />
+              Recent Activities
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {recentActivities.slice(0, 5).map((activity) => (
+                <div key={activity.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
                   <div>
-                    <p className="font-medium">{activity.task}</p>
-                    <p className="text-sm text-muted-foreground">{activity.time}</p>
+                    <p className="font-medium">{activity.title}</p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(activity.submitted_at).toLocaleDateString()}
+                    </p>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={activity.status === 'approved' ? 'default' : 'secondary'}>
+                  <Badge 
+                    variant={
+                      activity.status === 'approved' ? 'default' : 
+                      activity.status === 'pending' ? 'secondary' : 'destructive'
+                    }
+                  >
                     {activity.status}
                   </Badge>
-                  <span className="font-medium text-yellow-600">+{activity.coins} coins</span>
                 </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+              {recentActivities.length === 0 && (
+                <p className="text-gray-500 text-center py-4">No activities yet. Start by submitting your first activity!</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button className="w-full justify-start bg-purple-600 hover:bg-purple-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Submit New Activity
+            </Button>
+            <Button variant="outline" className="w-full justify-start">
+              <Calendar className="w-4 h-4 mr-2" />
+              Add Calendar Event
+            </Button>
+            <Button variant="outline" className="w-full justify-start">
+              <Gamepad2 className="w-4 h-4 mr-2" />
+              Play Games
+            </Button>
+            <Button variant="outline" className="w-full justify-start">
+              <Trophy className="w-4 h-4 mr-2" />
+              View Rewards
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Include Referral System for parents */}
+      <ReferralSystem />
     </div>
   );
 };

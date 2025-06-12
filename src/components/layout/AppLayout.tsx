@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -13,7 +13,8 @@ import {
   Users, 
   Settings,
   Menu,
-  LogOut
+  LogOut,
+  Activity
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -25,17 +26,17 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { title: 'Dashboard', href: '/dashboard', icon: Home },
+  { title: 'Activities', href: '/activities', icon: Activity },
   { title: 'Calendar', href: '/calendar', icon: Calendar },
-  { title: 'Activities', href: '/activities', icon: Coins },
   { title: 'Rewards', href: '/rewards', icon: Trophy },
   { title: 'Games', href: '/games', icon: Gamepad2 },
   { title: 'Family', href: '/family', icon: Users },
-  { title: 'Settings', href: '/settings', icon: Settings },
 ];
 
 const AppLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { signOut, user } = useAuth();
+  const location = useLocation();
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-purple-50">
@@ -48,18 +49,21 @@ const AppLayout = () => {
       <nav className="flex-1 px-4 py-6 space-y-2">
         {navigation.map((item) => {
           const Icon = item.icon;
+          const isActive = location.pathname === item.href;
           return (
-            <a
+            <Link
               key={item.href}
-              href={item.href}
+              to={item.href}
               className={cn(
                 "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-                "text-gray-700 hover:bg-purple-100 hover:text-purple-700"
+                isActive 
+                  ? "bg-purple-100 text-purple-700" 
+                  : "text-gray-700 hover:bg-purple-100 hover:text-purple-700"
               )}
             >
               <Icon className="mr-3 h-5 w-5" />
               {item.title}
-            </a>
+            </Link>
           );
         })}
       </nav>
